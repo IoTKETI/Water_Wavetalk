@@ -12,7 +12,7 @@ Water_Wavetalk은 Nodejs를 기반으로 개발되었으며, 해당 어플리케
 
 - [Node.js](https://nodejs.org/en/)<br/>
 Node.js는 오픈 소스 JavaScript 엔진인 크롬 V8에 비동기 이벤트 처리 라이브러리인 libuv를 결합한 플랫폼이다. <br/>
-JavaScript로 브라우저 밖에서 서버를 구축하는 등의 코드를 실행할 수 있게 해주는 런타임 환경이다.
+JavaScript로 브라우저 밖에서 서버를 구축하는 등의 코드를 실행할 수 있게 해주는 런타임 환경이다.<br/>
 현재 Water_Wavetalk은 nodejs LTS14.x을 사용하였다.
   https://nodejs.org/en/download/
   

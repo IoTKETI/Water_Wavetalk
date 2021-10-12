@@ -18,6 +18,7 @@ global.wavePort = null;
 wavePortOpening();
 
 var delay = 5000;
+var reprtActvty=true;
 
 function wavePortOpening() {
     if (wavePort == null) {
@@ -93,7 +94,7 @@ function interval_upload(delay){
             'ntu': value_data
             }
         };
-        var resp = wdc_base.flex_create_cnt(cin_path, cin_obj);
+        var resp = wdc_base.flex_update_cnt(cin_path, cin_obj);
         console.log(resp);
       }
   },delay);
@@ -169,18 +170,16 @@ function response_mqtt (rsp_topic, rsc, to, fr, rqi, inpcs) {
 
 }
 
-
-
 function init_resource(){
-        let path = conf.ae.parent + '/' + conf.ae.name+'/'+ conf.cnt.name +'/' + conf.cnt.flexsub;
+        let path = conf.ae.parent + '/' + conf.ae.name+'/'+ conf.cnt.name +'/' + conf.cnt.flexsub; //flex_sub path
         let sub_body = {nu:['mqtt://' + conf.cse.host +'/'+ conf.noti.id + '?ct=json']};
         let sub_obj = {
             'm2m:sub':
                 {
                     'rn' : "sub_ipe",
-                    'enc': {'net': [1,2,3,4,5]},
+                    'enc': {'net': [1,3]},
                     'nu' : sub_body.nu,
-                    'nct': 2,
+                    'nct': 1,
                     'exc': 0 
                 }
         };
@@ -206,63 +205,29 @@ function parse_sgn(rqi, pc, callback) {
     if(pc.sgn) {
         var nmtype = pc['sgn'] != null ? 'short' : 'long';
         var sgnObj = {};
-        var cinObj = {};
+        var flexObj = {};
         sgnObj = pc['sgn'] != null ? pc['sgn'] : pc['singleNotification'];
-
         if (nmtype === 'long') {
             console.log('oneM2M spec. define only short name for resource')
         }
         else { // 'short'
-            if (sgnObj.sur) {
-                if(sgnObj.sur.charAt(0) != '/') {
-                    sgnObj.sur = '/' + sgnObj.sur;
+            if (sgnObj.nev.sur) {
+                if(sgnObj.nev.sur.charAt(0) != '/') {
+                    sgnObj.nev.sur = '/' + sgnObj.nev.sur;
                 }
-                var path_arr = sgnObj.sur.split('/');
+                var path_arr = sgnObj.nev.sur.split('/');
             }
-
             if (sgnObj.nev) {
                 if (sgnObj.nev.rep) {
-                    if (sgnObj.nev.rep['m2m:cin']) {
-                        sgnObj.nev.rep.cin = sgnObj.nev.rep['m2m:cin'];
-                        delete sgnObj.nev.rep['m2m:cin'];
-                    }
-
-                    if (sgnObj.nev.rep.cin) {
-                        cinObj = sgnObj.nev.rep.cin;
-                    }
-                    else {
-                        console.log('[mqtt_noti_action] m2m:cin is none');
-                        cinObj = null;
-                    }
+                    flexObj = sgnObj.nev.rep;
                 }
                 else {
                     console.log('[mqtt_noti_action] rep tag of m2m:sgn.nev is none. m2m:notification format mismatch with oneM2M spec.');
-                    cinObj = null;
                 }
-            }
-            else if (sgnObj.sud) {
-                console.log('[mqtt_noti_action] received notification of verification');
-                cinObj = {};
-                cinObj.sud = sgnObj.sud;
-            }
-            else if (sgnObj.vrq) {
-                console.log('[mqtt_noti_action] received notification of verification');
-                cinObj = {};
-                cinObj.vrq = sgnObj.vrq;
-            }
-
-            else {
-                console.log('[mqtt_noti_action] nev tag of m2m:sgn is none. m2m:notification format mismatch with oneM2M spec.');
-                cinObj = null;
             }
         }
     }
-    else {
-        console.log('[mqtt_noti_action] m2m:sgn tag is none. m2m:notification format mismatch with oneM2M spec.');
-        console.log(pc);
-    }
-
-    callback(path_arr, cinObj, rqi);
+    callback(path_arr, flexObj, rqi);
 };
 
 function mqtt_noti_action(jsonObj, callback) {
@@ -278,20 +243,31 @@ function mqtt_noti_action(jsonObj, callback) {
             pc.sgn = pc['m2m:sgn'];
             delete pc['m2m:sgn'];
         }
-        parse_sgn(rqi, pc, function(path_arr, cinObj,rqi){
-            if(cinObj) {
-                if(cinObj.sud || cinObj.vrq) {
-                    var resp_topic = '/oneM2M/resp/' + topic_arr[3] + '/' + topic_arr[4] + '/' + topic_arr[5];
-                }
-                else {
-                        console.log('mqtt ' + 'json' + ' notification <----');
+        
+        parse_sgn(rqi, pc, function(path_arr, flexObj,rqi){
+            if(flexObj) {
+                for (const [key, value] of Object.entries(flexObj)) {
+                    console.log(key,value);
+                    if(path_arr[4] === conf.cnt.flexsub){
+                        if(path_arr[3] === conf.cnt.name){ //sensor1
+                            delay = Number(value["reprtIntrvl"]+"000");
+                            reprtActvty = value["reprtActvty"]; 
+                            if(reprtActvty === true){
+                                clearInterval(timerId);
+                                interval_upload(delay);
+                            }
+                            else{
+                                clearInterval(timerId);
+                            }
+                        }else{
+                            console.log("Not FlexsubData");
+                        }
+                    }
+                    else{
+                        console.log("Not FlexsubData");
+                    }
 
-                        console.log(cinObj.con["reportingPeriod"]);
-                        delay = Number(cinObj.con["reportingPeriod"]+"000");
-                        clearInterval(timerId);
-                        interval_upload(delay);
-                        callback(path_arr, cinObj, rqi, pc.sgn.sur);
-                }
+                  }
             }
         })
     }

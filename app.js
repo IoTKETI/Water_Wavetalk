@@ -12,65 +12,65 @@ var wdc_base = new wdc();
 var event = new events.EventEmitter();
 wdc_base.set_wdc_info(conf.cse.host,conf.cse.port,conf.ae.id);
 
-var wavePortNum = 'COM3';
-var waveBaudrate = '115200';
-global.wavePort = null;
-wavePortOpening();
+var waterPortNum = 'COM3';
+var waterBaudrate = '115200';
+global.waterPort = null;
+waterPortOpening();
 
 var delay = 5000;
 var reprtActvty=true;
 
-function wavePortOpening() {
-    if (wavePort == null) {
-        wavePort = new SerialPort(wavePortNum, {
-            baudRate: parseInt(waveBaudrate, 10),
+function waterPortOpening() {
+    if (waterPort == null) {
+        waterPort = new SerialPort(waterPortNum, {
+            baudRate: parseInt(waterBaudrate, 10),
         });
 
-        wavePort.on('open', wavePortOpen);
-        wavePort.on('close', wavePortClose);
-        wavePort.on('error', wavePortError);
-        wavePort.on('data', wavePortData);
+        waterPort.on('open', waterPortOpen);
+        waterPort.on('close', waterPortClose);
+        waterPort.on('error', waterPortError);
+        waterPort.on('data', waterPortData);
     } else {
-        if (wavePort.isOpen) {
+        if (waterPort.isOpen) {
 
         } else {
-            wavePort.open();
+            waterPort.open();
         }
     }
 }
 
-function wavePortOpen() {
-    console.log('wavePort open. ' + wavePortNum + ' Data rate: ' + waveBaudrate);
+function waterPortOpen() {
+    console.log('waterPort open. ' + waterPortNum + ' Data rate: ' + waterBaudrate);
     interval_upload(delay);
-    if (wavePort != null) {
-        if (wavePort.isOpen) {
-            wavePort.write('\n');
-            wavePort.write('3\n');
+    if (waterPort != null) {
+        if (waterPort.isOpen) {
+            waterPort.write('\n');
+            waterPort.write('3\n');
         }
     }
 }
 
-function wavePortClose() {
-    console.log('wavePort closed.');
+function waterPortClose() {
+    console.log('waterPort closed.');
 
-    setTimeout(wavePortOpening, 2000);
+    setTimeout(waterPortOpening, 2000);
 }
 
-function wavePortError(error) {
+function waterPortError(error) {
     var error_str = error.toString();
-    console.log('[wavePort error]: ' + error.message);
+    console.log('[waterPort error]: ' + error.message);
     if (error_str.substring(0, 14) == "Error: Opening") {
 
     } else {
-        console.log('wavePort error : ' + error);
+        console.log('waterPort error : ' + error);
     }
 
-    setTimeout(wavePortOpening, 2000);
+    setTimeout(waterPortOpening, 2000);
 }
 
 var str = '';
 var value_data ='';
-function wavePortData(data) {
+function waterPortData(data) {
     str = data.toString('utf8');
     if(str.length < 70){
         str = str.split('  ');
@@ -86,15 +86,15 @@ function wavePortData(data) {
 
 var timerId = '';
 function interval_upload(delay){
-    var cin_path = conf.ae.parent + '/' + conf.ae.name + '/' + conf.cnt.name+ '/' +conf.cnt.flexcnt;//flex_cnt_path
+    var cnt_path = conf.ae.parent + '/' + conf.ae.name + '/' + conf.cnt.name+ '/' +conf.cnt.flexcnt;//flex_cnt_path
     timerId = setInterval(function(){
       if(value_data !=''){
-        var cin_obj = {
+        var cnt_obj = {
             'wat:wqgi':{
             'ntu': value_data
             }
         };
-        var resp = wdc_base.flex_update_cnt(cin_path, cin_obj);
+        var resp = wdc_base.flex_update_cnt(cnt_path, cnt_obj);
         console.log(resp);
       }
   },delay);
@@ -139,11 +139,11 @@ function on_mqtt_message_recv(topic, message) {
         if (jsonObj['m2m:rqp'] == null) {
             jsonObj['m2m:rqp'] = jsonObj;
         }
-        mqtt_noti_action(jsonObj, function (path_arr, cinObj, rqi, sur) {
-            if (cinObj) {
+        mqtt_noti_action(jsonObj, function (path_arr, flexObj, rqi, sur) {
+            if (flexObj) {
                 var rsp_topic = '/oneM2M/resp/' + topic_arr[3] + '/' + topic_arr[4] + '/' + topic_arr[5];
 
-                event.emit('upload', sur, cinObj);
+                event.emit('upload', sur, flexObj);
 
                 response_mqtt(rsp_topic, '2001', '', conf.ae.id, rqi, '', topic_arr[5]);
             }

@@ -58,7 +58,7 @@ conf.noti = noti;
 module.exports = conf;
  
 ```
-- Serial 설정부분은 app.js에서 
+- app.js에서 Serial의 Port와 Baudrate를 설정한다.
 ```
 var waterPortNum = 'COM3';         // SERIAL PORT
 var waterBaudrate = '115200';      // SERIAL BAUDRATE

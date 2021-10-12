@@ -7,6 +7,7 @@ var http = require('http');
 global.conf = require('./conf.js');
 
 var wdc = require('./Connector').wdc;
+const conf = require('./conf.js');
 var wdc_base = new wdc();
 var event = new events.EventEmitter();
 wdc_base.set_wdc_info(conf.cse.host,conf.cse.port,conf.ae.id);
@@ -84,7 +85,7 @@ function wavePortData(data) {
 
 var timerId = '';
 function interval_upload(delay){
-    var cin_path = conf.ae.parent + '/' + conf.ae.name + '/' + conf.cnt.name+ '/' +'WtqltGnrlMesureIem';//flex_cnt_path
+    var cin_path = conf.ae.parent + '/' + conf.ae.name + '/' + conf.cnt.name+ '/' +conf.cnt.flexcnt;//flex_cnt_path
     timerId = setInterval(function(){
       if(value_data !=''){
         var cin_obj = {
@@ -171,7 +172,7 @@ function response_mqtt (rsp_topic, rsc, to, fr, rqi, inpcs) {
 
 
 function init_resource(){
-        let path = conf.ae.parent + '/' + conf.ae.name+'/'+ conf.cnt.name +'/' + 'config';
+        let path = conf.ae.parent + '/' + conf.ae.name+'/'+ conf.cnt.name +'/' + conf.cnt.flexsub;
         let sub_body = {nu:['mqtt://' + conf.cse.host +'/'+ conf.noti.id + '?ct=json']};
         let sub_obj = {
             'm2m:sub':

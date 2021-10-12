@@ -17,6 +17,8 @@ ae.parent = "/" + cse.name;
 ae.appid = "kwater-poc"
 
 cnt.name = 'sensor1';
+cnt.flexcnt = 'WtqltGnrlMesureIem';
+cnt.flexsub = 'WtqltMesureSetup';
 
 noti.id = 'nodered';
 

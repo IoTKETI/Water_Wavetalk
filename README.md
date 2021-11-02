@@ -62,7 +62,7 @@ module.exports = conf;
 ```
 var waterPortNum = 'COM3';         // SERIAL PORT
 var waterBaudrate = '115200';      // SERIAL BAUDRATE
-var delay = 5000;                  // Request to oneM2M platform
+var delay = 5000;                  // Request time to oneM2M platform
 
 ```
 
